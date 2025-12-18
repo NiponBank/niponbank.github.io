@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конвертер Нипонкойнов</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6750A4;
+            --on-primary: #FFFFFF;
+            --surface: #FEF7FF;
+            --on-surface: #1D1B20;
+            --on-surface-variant: #49454F;
+            --surface-container: #F3EDF7;
+            --outline: #79747E;
+            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="dark"] {
+            --primary: #D0BCFF;
+            --on-primary: #381E72;
+            --surface: #141218;
+            --on-surface: #E6E1E5;
+            --on-surface-variant: #CAC4D0;
+            --surface-container: #211F26;
+            --outline: #938F99;
+        }
+
+        body {
+            font-family: "Google Sans", "Roboto", sans-serif;
+            background-color: var(--surface);
+            color: var(--on-surface);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color var(--transition);
+        }
+
+        .card {
+            background-color: var(--surface-container);
+            padding: 28px;
+            border-radius: 28px;
+            width: 340px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        h2 { font-size: 20px; margin: 0; font-weight: 500; }  .theme-btn {
+            background: none; border: 1px solid var(--outline);
+            color: var(--on-surface); padding: 8px;
+            border-radius: 10px; cursor: pointer;
+        }
+
+        .input-group { margin-bottom: 16px; }
+
+        input, select {
+            width: 100%; padding: 16px;
+            background: transparent;
+            border: 1px solid var(--outline);
+            border-radius: 12px;
+            color: var(--on-surface);
+            font-size: 16px; box-sizing: border-box;
+            outline: none;
+        }
+
+        input:focus { border: 2px solid var(--primary); }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .swap-container {
+            display: flex; justify-content: center; margin: -8px 0 8px 0;
+        }
+
+        .swap-btn {
+            background: var(--primary); color: var(--on-primary);
+            border: none; width: 40px; height: 40px;
+            border-radius: 50%; cursor: pointer; font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        .result-area {
+            text-align: center; margin-top: 10px;
+            padding: 16px; border-radius: 16px;
+            background: var(--primary); color: var(--on-primary);
+        }
+
+        .result-val { font-size: 28px; font-weight: 500; }
+        .result-label { font-size: 12px; opacity: 0.8; }
+
+        .copyright {
+            margin-top: 24px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--on-surface-variant);
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="header">
+        <h2>Конвертер Нипонкойнов</h2>
+        <button class="theme-btn" onclick="toggleTheme()">🌓</button>
+    </div>
+
+    <div class="input-group">
+        <input type="number" id="inputValue" placeholder="0.00" min="0" oninput="calculate()">
+    </div>
+
+    <div class="swap-container">
+        <button class="swap-btn" onclick="swap()">⇅</button>
+    </div>
+
+    <div class="input-group">
+        <select id="currencySelect" onchange="calculate()">
+            <option value="1">Рубли (₽)</option>
+            <option value="90">Доллары ($)</option>
+            <option value="100">Евро (€)</option>
+        </select>
+    </div>
+
+    <div class="result-area">
+        <div class="result-label" id="directionLabel">Вы получите Нипонкойны:</div>
+        <div class="result-val" id="resultDisplay">0 ℕ</div>
+    </div>
+
+    <div class="copyright">
+        NiponBank 2024 - 2025
+    </div>
+</div>
+
+<script>
+    let isReverse = false;
+    const rate = 0.3; 
+
+    function toggleTheme() {
+        const body = document.body;
+        const current = body.getAttribute('data-theme');
+        body.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+    }
+
+    function swap() {
+        isReverse = !isReverse;
+        document.getElementById('directionLabel').innerText = isReverse ? 
+            "Вы получите в выбранной валюте:" : "Вы получите Нипонкойны:";
+        calculate();
+    }
+
+    function calculate() {
+        const input = document.getElementById('inputValue');
+        let val = parseFloat(input.value);
+
+        if (val < 0) {
+            input.value = 0;
+            val = 0;
+        }
+
+        if (isNaN(val)) val = 0;
+
+        const curRate = parseFloat(document.getElementById('currencySelect').value);
+        const display = document.getElementById('resultDisplay');
+
+        if (!isReverse) {
+            const inRub = val * curRate;
+            const res = (inRub / rate).toFixed(2);
+            display.innerText = res + ' ℕ';
+        } else {
+            const inRub = val * rate;
+            const res = (inRub / curRate).toFixed(2);
+            const select = document.getElementById('currencySelect');
+            const symbol = select.options[select.selectedIndex].text.split('(')[1].replace(')', '');
+            display.innerText = res + ' ' + symbol;
+        }
+    }
+</script>
+
+</body>
+</html>
